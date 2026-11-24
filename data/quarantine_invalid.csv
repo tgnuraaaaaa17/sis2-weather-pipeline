@@ -1,0 +1,6 @@
+record_id,city,country,latitude,longitude,time,temperature_2m,relative_humidity_2m,wind_speed_10m,weather_code,source,validation_errors
+Almaty|2026-11-23T00:15,Almaty,KZ,43.26889,76.95067,2026-11-23T00:15,4.6,135.0,1.2,45,synthetic_test,relative_humidity_2m: humidity out of 0-100 [135.0]
+Almaty|2026-11-23T00:30,Almaty,KZ,43.26889,76.95067,2026-11-23T00:30,,63.0,1.2,45,synthetic_test,temperature_2m: not_nullable [nan]
+Almaty|2026-11-23T00:45,Almaty,KZ,43.26889,76.95067,2026-11-23T00:45,4.6,63.0,1.2,999,synthetic_test,weather_code: unknown weather code [999]
+Almaty|2026-11-23T00:59,Almaty,KZ,43.26889,76.95067,2026-11-23T00:59,4.6,63.0,-50.0,45,synthetic_test,wind_speed_10m: wind speed out of range [-50.0]
+Almaty|2026-11-23T00:00,Almaty,KZ,43.26889,76.95067,2026-11-23T00:00,4.6,63.0,1.2,45,synthetic_test,record_id: record_id is duplicated [Almaty|2026-11-23T00:00]

@@ -1,0 +1,486 @@
+2026-11-24 17:39:53 | INFO    | main        | ==================== STAGE: api_client ====================
+2026-11-24 17:39:54 | INFO    | api_client  | Collecting data from https://api.open-meteo.com/v1/forecast
+2026-11-24 17:39:55 | INFO    | api_client  | Almaty     -> 96 hourly records
+2026-11-24 17:39:55 | INFO    | api_client  | Astana     -> 96 hourly records
+2026-11-24 17:39:56 | INFO    | api_client  | Shymkent   -> 96 hourly records
+2026-11-24 17:39:56 | INFO    | api_client  | Aktobe     -> 96 hourly records
+2026-11-24 17:39:56 | INFO    | api_client  | Karaganda  -> 96 hourly records
+2026-11-24 17:39:57 | INFO    | api_client  | Atyrau     -> 96 hourly records
+2026-11-24 17:39:57 | INFO    | api_client  | Pavlodar   -> 96 hourly records
+2026-11-24 17:39:58 | INFO    | api_client  | Aktau      -> 96 hourly records
+2026-11-24 17:39:58 | INFO    | api_client  | Collected 768 records (8/8 cities OK) -> raw_data.csv
+2026-11-24 17:39:58 | INFO    | main        | ==================== STAGE: producer ====================
+2026-11-24 17:39:59 | INFO    | producer    | Connecting to Kafka broker at localhost:9092
+2026-11-24 17:39:59 | INFO    | producer    | Topic 'weather_raw' created (partitions=1)
+2026-11-24 17:40:00 | INFO    | producer    | PUBLISHED 773 messages (failed=0) to topic 'weather_raw' | run_id=20261124T123959-f68015
+2026-11-24 17:40:00 | INFO    | main        | ==================== STAGE: consumer ====================
+2026-11-24 17:40:01 | INFO    | consumer    | Consuming topic 'weather_raw' (run_id=20261124T123959-f68015, expected=773)
+2026-11-24 17:40:04 | INFO    | consumer    | CONSUMED 773 messages (errors=0, skipped=0, stop=expected_count_reached) -> consumed_data.csv
+2026-11-24 17:40:04 | INFO    | main        | ==================== STAGE: validator ====================
+2026-11-24 17:40:05 | INFO    | validator   | Validating 773 consumed records against the Pandera schema (12 rules)
+2026-11-24 17:40:05 | INFO    | validator   | VALID=768  INVALID=5  (real invalid=0, test records detected=5/5)
+2026-11-24 17:40:05 | INFO    | validator   |   invalid Almaty|2026-11-23T00:15      <- relative_humidity_2m: humidity out of 0-100 [135.0]
+2026-11-24 17:40:05 | INFO    | validator   |   invalid Almaty|2026-11-23T00:30      <- temperature_2m: not_nullable [nan]
+2026-11-24 17:40:05 | INFO    | validator   |   invalid Almaty|2026-11-23T00:45      <- weather_code: unknown weather code [999]
+2026-11-24 17:40:05 | INFO    | validator   |   invalid Almaty|2026-11-23T00:59      <- wind_speed_10m: wind speed out of range [-50.0]
+2026-11-24 17:40:05 | INFO    | validator   |   invalid Almaty|2026-11-23T00:00      <- record_id: record_id is duplicated [Almaty|2026-11-23T00:00]
+2026-11-24 17:40:05 | INFO    | main        | ==================== STAGE: cleaner ====================
+2026-11-24 17:40:05 | INFO    | cleaner     | Cleaning 768 validated records
+2026-11-24 17:40:05 | INFO    | cleaner     | missing before=none | imputed wind=0 | duplicates removed=0 | test removed=0
+2026-11-24 17:40:05 | INFO    | cleaner     | filter windy&cold=2 | humid daytime wet/fog=88
+2026-11-24 17:40:05 | INFO    | cleaner     | CLEAN records: 768 -> clean_data.csv
+2026-11-24 17:40:05 | INFO    | main        | ==================== STAGE: loader ====================
+2026-11-24 17:40:06 | INFO    | loader      | LOAD #1: attempted=768 inserted=768 total_in_db=768
+2026-11-24 17:40:06 | INFO    | loader      | LOAD #2: attempted=768 inserted=0 total_in_db=768
+2026-11-24 17:40:06 | INFO    | loader      | IDEMPOTENCY PASSED (checksum #1 e887b40d4898... / #2 e887b40d4898...)
+2026-11-24 17:40:06 | INFO    | loader      | SQL total_rows         -> [(768,)]
+2026-11-24 17:40:06 | INFO    | loader      | SQL rows_per_city      -> [('Aktau', 96, 8.88), ('Aktobe', 96, 2.57), ('Almaty', 96, 8.82)]
+2026-11-24 17:40:06 | INFO    | loader      | SQL time_range         -> [('2026-11-23T00:00', '2026-11-26T23:00')]
+2026-11-24 17:40:06 | INFO    | loader      | SQL duplicate_check    -> (no rows)
+2026-11-24 17:40:06 | INFO    | loader      | SQL null_check         -> [(0, 0, 0)]
+2026-11-24 17:40:06 | INFO    | loader      | SQL weather_categories -> [('Cloudy', 488), ('Drizzle', 110), ('Clear', 91)]
+2026-11-24 17:40:06 | INFO    | loader      | SQL top5_coldest_hours -> [('Aktobe', '2026-11-26T23:00', -1.8), ('Aktobe', '2026-11-26T22:00', -1.7), ('Pavlodar', '2026-11-26T03:00', -1.7)]
+2026-11-24 17:40:06 | INFO    | loader      | SQL orphan_check       -> [(0,)]
+2026-11-24 17:40:06 | INFO    | loader      | Processed=768 | stored in SQLite=768
+2026-11-24 17:40:06 | INFO    | main        | ==================== STAGE: analysis ====================
+2026-11-24 17:40:07 | INFO    | analysis    | Dataset shape: (768, 22)
+2026-11-24 17:40:07 | INFO    | analysis    | figure saved: figures/fig01_temperature_timeseries.png
+2026-11-24 17:40:08 | INFO    | analysis    | figure saved: figures/fig02_humidity_boxplot_by_city.png
+2026-11-24 17:40:08 | INFO    | analysis    | figure saved: figures/fig03_weather_category_counts.png
+2026-11-24 17:40:08 | INFO    | analysis    | figure saved: figures/fig04_temperature_vs_humidity.png
+2026-11-24 17:40:08 | INFO    | analysis    | figure saved: figures/fig05_correlation_heatmap.png
+2026-11-24 17:40:09 | INFO    | analysis    | figure saved: figures/fig06_city_part_of_day_heatmap.png
+2026-11-24 17:40:09 | INFO    | analysis    | FINDING: RQ1 - The warmest city over the period is Shymkent (13.6 °C mean) and the coldest is Pavlodar (2.6 °C); the spread of city means is 11.0 °C.
+2026-11-24 17:40:09 | INFO    | analysis    | FINDING: RQ1 - The most humid city is Astana (90 % mean) and the windiest is Aktau (mean 19.8 km/h, peak 40 km/h).
+2026-11-24 17:40:09 | INFO    | analysis    | FINDING: RQ2 - Temperature and humidity show a moderate negative correlation (Pearson r = -0.60).
+2026-11-24 17:40:09 | INFO    | analysis    | FINDING: RQ3 - The most frequent weather category is 'Cloudy' (64 % of hours), followed by 'Drizzle'.
+2026-11-24 17:40:09 | INFO    | analysis    | FINDING: RQ3 - Over the whole sample the warmest part of the day is Afternoon (7.5 °C) and the coldest is Night (5.0 °C).
+2026-11-24 17:40:09 | INFO    | main        | ==================== STAGE: verify ====================
+2026-11-24 17:40:09 | INFO    | verify      | Records collected from the API                          768
+2026-11-24 17:40:09 | INFO    | verify      | Deliberate invalid test records added by producer         5
+2026-11-24 17:40:09 | INFO    | verify      | Messages published to Kafka                             773
+2026-11-24 17:40:09 | INFO    | verify      | Messages consumed from Kafka                            773
+2026-11-24 17:40:09 | INFO    | verify      | Valid records (Pandera)                                 768
+2026-11-24 17:40:09 | INFO    | verify      | Invalid records (Pandera)                                 5
+2026-11-24 17:40:09 | INFO    | verify      | Records after cleaning                                  768
+2026-11-24 17:40:09 | INFO    | verify      | Records stored in SQLite3                               768
+2026-11-24 17:40:09 | INFO    | verify      | [PASS] API records >= 200
+2026-11-24 17:40:09 | INFO    | verify      | [PASS] Published messages >= 200
+2026-11-24 17:40:09 | INFO    | verify      | [PASS] Consumed messages >= 200
+2026-11-24 17:40:09 | INFO    | verify      | [PASS] published == API records + test records
+2026-11-24 17:40:09 | INFO    | verify      | [PASS] consumed == published
+2026-11-24 17:40:09 | INFO    | verify      | [PASS] valid + invalid == consumed
+2026-11-24 17:40:09 | INFO    | verify      | [PASS] all deliberate test records detected by Pandera
+2026-11-24 17:40:09 | INFO    | verify      | [PASS] at least 3 invalid test records demonstrated
+2026-11-24 17:40:09 | INFO    | verify      | [PASS] cleaned == valid - test - duplicates
+2026-11-24 17:40:09 | INFO    | verify      | [PASS] stored in SQLite == cleaned
+2026-11-24 17:40:09 | INFO    | verify      | [PASS] idempotent loading (2nd run adds 0 rows, same checksum)
+2026-11-24 17:40:09 | INFO    | verify      | [PASS] SQLite integrity_check == ok
+2026-11-24 17:40:09 | INFO    | verify      | [PASS] no duplicate record_id in SQLite
+2026-11-24 17:40:09 | INFO    | verify      | PIPELINE VERIFIED - all checks passed
+2026-11-24 17:40:09 | INFO    | main        | Pipeline finished successfully.
+2026-11-24 17:58:03 | INFO    | main        | ==================== STAGE: api_client ====================
+2026-11-24 17:58:03 | INFO    | api_client  | Collecting data from https://api.open-meteo.com/v1/forecast
+2026-11-24 17:58:04 | INFO    | api_client  | Almaty     -> 96 hourly records
+2026-11-24 17:58:04 | INFO    | api_client  | Astana     -> 96 hourly records
+2026-11-24 17:58:04 | INFO    | api_client  | Shymkent   -> 96 hourly records
+2026-11-24 17:58:05 | INFO    | api_client  | Aktobe     -> 96 hourly records
+2026-11-24 17:58:05 | INFO    | api_client  | Karaganda  -> 96 hourly records
+2026-11-24 17:58:06 | INFO    | api_client  | Atyrau     -> 96 hourly records
+2026-11-24 17:58:06 | INFO    | api_client  | Pavlodar   -> 96 hourly records
+2026-11-24 17:58:06 | INFO    | api_client  | Aktau      -> 96 hourly records
+2026-11-24 17:58:07 | INFO    | api_client  | Collected 768 records (8/8 cities OK) -> raw_data.csv
+2026-11-24 17:58:07 | INFO    | main        | ==================== STAGE: producer ====================
+2026-11-24 17:58:07 | INFO    | producer    | Connecting to Kafka broker at localhost:9092
+2026-11-24 17:58:07 | INFO    | producer    | Topic 'weather_raw' already exists - reusing it
+2026-11-24 17:58:08 | INFO    | producer    | PUBLISHED 773 messages (failed=0) to topic 'weather_raw' | run_id=20261124T125807-aacf77
+2026-11-24 17:58:08 | INFO    | main        | ==================== STAGE: consumer ====================
+2026-11-24 17:58:09 | INFO    | consumer    | Consuming topic 'weather_raw' (run_id=20261124T125807-aacf77, expected=773)
+2026-11-24 17:58:09 | INFO    | consumer    | CONSUMED 773 messages (errors=0, skipped=773, stop=expected_count_reached) -> consumed_data.csv
+2026-11-24 17:58:09 | INFO    | main        | ==================== STAGE: validator ====================
+2026-11-24 17:58:09 | INFO    | validator   | Validating 773 consumed records against the Pandera schema (12 rules)
+2026-11-24 17:58:09 | INFO    | validator   | VALID=768  INVALID=5  (real invalid=0, test records detected=5/5)
+2026-11-24 17:58:09 | INFO    | validator   |   invalid Almaty|2026-11-23T00:15      <- relative_humidity_2m: humidity out of 0-100 [135.0]
+2026-11-24 17:58:09 | INFO    | validator   |   invalid Almaty|2026-11-23T00:30      <- temperature_2m: not_nullable [nan]
+2026-11-24 17:58:09 | INFO    | validator   |   invalid Almaty|2026-11-23T00:45      <- weather_code: unknown weather code [999]
+2026-11-24 17:58:09 | INFO    | validator   |   invalid Almaty|2026-11-23T00:59      <- wind_speed_10m: wind speed out of range [-50.0]
+2026-11-24 17:58:09 | INFO    | validator   |   invalid Almaty|2026-11-23T00:00      <- record_id: record_id is duplicated [Almaty|2026-11-23T00:00]
+2026-11-24 17:58:10 | INFO    | main        | ==================== STAGE: cleaner ====================
+2026-11-24 17:58:10 | INFO    | cleaner     | Cleaning 768 validated records
+2026-11-24 17:58:10 | INFO    | cleaner     | missing before=none | imputed wind=0 | duplicates removed=0 | test removed=0
+2026-11-24 17:58:10 | INFO    | cleaner     | filter windy&cold=2 | humid daytime wet/fog=88
+2026-11-24 17:58:10 | INFO    | cleaner     | CLEAN records: 768 -> clean_data.csv
+2026-11-24 17:58:10 | INFO    | main        | ==================== STAGE: loader ====================
+2026-11-24 17:58:11 | INFO    | loader      | LOAD #1: attempted=768 inserted=768 total_in_db=768
+2026-11-24 17:58:11 | INFO    | loader      | LOAD #2: attempted=768 inserted=0 total_in_db=768
+2026-11-24 17:58:11 | INFO    | loader      | IDEMPOTENCY PASSED (checksum #1 e887b40d4898... / #2 e887b40d4898...)
+2026-11-24 17:58:11 | INFO    | loader      | SQL total_rows         -> [(768,)]
+2026-11-24 17:58:11 | INFO    | loader      | SQL rows_per_city      -> [('Aktau', 96, 8.88), ('Aktobe', 96, 2.57), ('Almaty', 96, 8.82)]
+2026-11-24 17:58:11 | INFO    | loader      | SQL time_range         -> [('2026-11-23T00:00', '2026-11-26T23:00')]
+2026-11-24 17:58:11 | INFO    | loader      | SQL duplicate_check    -> (no rows)
+2026-11-24 17:58:11 | INFO    | loader      | SQL null_check         -> [(0, 0, 0)]
+2026-11-24 17:58:11 | INFO    | loader      | SQL weather_categories -> [('Cloudy', 488), ('Drizzle', 110), ('Clear', 91)]
+2026-11-24 17:58:11 | INFO    | loader      | SQL top5_coldest_hours -> [('Aktobe', '2026-11-26T23:00', -1.8), ('Aktobe', '2026-11-26T22:00', -1.7), ('Pavlodar', '2026-11-26T03:00', -1.7)]
+2026-11-24 17:58:11 | INFO    | loader      | SQL orphan_check       -> [(0,)]
+2026-11-24 17:58:11 | INFO    | loader      | Processed=768 | stored in SQLite=768
+2026-11-24 17:58:11 | INFO    | main        | ==================== STAGE: analysis ====================
+2026-11-24 17:58:11 | INFO    | analysis    | Dataset shape: (768, 22)
+2026-11-24 17:58:12 | INFO    | analysis    | figure saved: figures/fig01_temperature_timeseries.png
+2026-11-24 17:58:12 | INFO    | analysis    | figure saved: figures/fig02_humidity_boxplot_by_city.png
+2026-11-24 17:58:12 | INFO    | analysis    | figure saved: figures/fig03_weather_category_counts.png
+2026-11-24 17:58:12 | INFO    | analysis    | figure saved: figures/fig04_temperature_vs_humidity.png
+2026-11-24 17:58:13 | INFO    | analysis    | figure saved: figures/fig05_correlation_heatmap.png
+2026-11-24 17:58:13 | INFO    | analysis    | figure saved: figures/fig06_city_part_of_day_heatmap.png
+2026-11-24 17:58:13 | INFO    | analysis    | FINDING: RQ1 - The warmest city over the period is Shymkent (13.6 °C mean) and the coldest is Pavlodar (2.6 °C); the spread of city means is 11.0 °C.
+2026-11-24 17:58:13 | INFO    | analysis    | FINDING: RQ1 - The most humid city is Astana (90 % mean) and the windiest is Aktau (mean 19.8 km/h, peak 40 km/h).
+2026-11-24 17:58:13 | INFO    | analysis    | FINDING: RQ2 - Temperature and humidity show a moderate negative correlation (Pearson r = -0.60).
+2026-11-24 17:58:13 | INFO    | analysis    | FINDING: RQ3 - The most frequent weather category is 'Cloudy' (64 % of hours), followed by 'Drizzle'.
+2026-11-24 17:58:13 | INFO    | analysis    | FINDING: RQ3 - Over the whole sample the warmest part of the day is Afternoon (7.5 °C) and the coldest is Night (5.0 °C).
+2026-11-24 17:58:13 | INFO    | main        | ==================== STAGE: verify ====================
+2026-11-24 17:58:13 | INFO    | verify      | Records collected from the API                          768
+2026-11-24 17:58:13 | INFO    | verify      | Deliberate invalid test records added by producer         5
+2026-11-24 17:58:13 | INFO    | verify      | Messages published to Kafka                             773
+2026-11-24 17:58:13 | INFO    | verify      | Messages consumed from Kafka                            773
+2026-11-24 17:58:13 | INFO    | verify      | Valid records (Pandera)                                 768
+2026-11-24 17:58:13 | INFO    | verify      | Invalid records (Pandera)                                 5
+2026-11-24 17:58:13 | INFO    | verify      | Records after cleaning                                  768
+2026-11-24 17:58:13 | INFO    | verify      | Records stored in SQLite3                               768
+2026-11-24 17:58:13 | INFO    | verify      | [PASS] API records >= 200
+2026-11-24 17:58:13 | INFO    | verify      | [PASS] Published messages >= 200
+2026-11-24 17:58:13 | INFO    | verify      | [PASS] Consumed messages >= 200
+2026-11-24 17:58:13 | INFO    | verify      | [PASS] published == API records + test records
+2026-11-24 17:58:13 | INFO    | verify      | [PASS] consumed == published
+2026-11-24 17:58:13 | INFO    | verify      | [PASS] valid + invalid == consumed
+2026-11-24 17:58:13 | INFO    | verify      | [PASS] all deliberate test records detected by Pandera
+2026-11-24 17:58:13 | INFO    | verify      | [PASS] at least 3 invalid test records demonstrated
+2026-11-24 17:58:13 | INFO    | verify      | [PASS] cleaned == valid - test - duplicates
+2026-11-24 17:58:13 | INFO    | verify      | [PASS] stored in SQLite == cleaned
+2026-11-24 17:58:13 | INFO    | verify      | [PASS] idempotent loading (2nd run adds 0 rows, same checksum)
+2026-11-24 17:58:13 | INFO    | verify      | [PASS] SQLite integrity_check == ok
+2026-11-24 17:58:13 | INFO    | verify      | [PASS] no duplicate record_id in SQLite
+2026-11-24 17:58:13 | INFO    | verify      | PIPELINE VERIFIED - all checks passed
+2026-11-24 17:58:13 | INFO    | main        | Pipeline finished successfully.
+2026-11-24 18:27:38 | INFO    | main        | ==================== STAGE: api_client ====================
+2026-11-24 18:27:39 | INFO    | api_client  | Collecting data from https://api.open-meteo.com/v1/forecast
+2026-11-24 18:27:39 | INFO    | api_client  | Almaty     -> 96 hourly records
+2026-11-24 18:27:40 | INFO    | api_client  | Astana     -> 96 hourly records
+2026-11-24 18:27:40 | INFO    | api_client  | Shymkent   -> 96 hourly records
+2026-11-24 18:27:40 | INFO    | api_client  | Aktobe     -> 96 hourly records
+2026-11-24 18:27:41 | INFO    | api_client  | Karaganda  -> 96 hourly records
+2026-11-24 18:27:41 | INFO    | api_client  | Atyrau     -> 96 hourly records
+2026-11-24 18:27:42 | INFO    | api_client  | Pavlodar   -> 96 hourly records
+2026-11-24 18:27:42 | INFO    | api_client  | Aktau      -> 96 hourly records
+2026-11-24 18:27:42 | INFO    | api_client  | Collected 768 records (8/8 cities OK) -> raw_data.csv
+2026-11-24 18:27:42 | INFO    | main        | ==================== STAGE: producer ====================
+2026-11-24 18:27:43 | INFO    | producer    | Connecting to Kafka broker at localhost:9092
+2026-11-24 18:27:43 | INFO    | producer    | Topic 'weather_raw' already exists - reusing it
+2026-11-24 18:27:44 | INFO    | producer    | PUBLISHED 773 messages (failed=0) to topic 'weather_raw' | run_id=20261124T132743-7bbd53
+2026-11-24 18:27:44 | INFO    | main        | ==================== STAGE: consumer ====================
+2026-11-24 18:27:44 | INFO    | consumer    | Consuming topic 'weather_raw' (run_id=20261124T132743-7bbd53, expected=773)
+2026-11-24 18:27:44 | INFO    | consumer    | CONSUMED 773 messages (errors=0, skipped=1546, stop=expected_count_reached) -> consumed_data.csv
+2026-11-24 18:27:44 | INFO    | main        | ==================== STAGE: validator ====================
+2026-11-24 18:27:45 | INFO    | validator   | Validating 773 consumed records against the Pandera schema (12 rules)
+2026-11-24 18:27:45 | INFO    | validator   | VALID=768  INVALID=5  (real invalid=0, test records detected=5/5)
+2026-11-24 18:27:45 | INFO    | validator   |   invalid Almaty|2026-11-23T00:15      <- relative_humidity_2m: humidity out of 0-100 [135.0]
+2026-11-24 18:27:45 | INFO    | validator   |   invalid Almaty|2026-11-23T00:30      <- temperature_2m: not_nullable [nan]
+2026-11-24 18:27:45 | INFO    | validator   |   invalid Almaty|2026-11-23T00:45      <- weather_code: unknown weather code [999]
+2026-11-24 18:27:45 | INFO    | validator   |   invalid Almaty|2026-11-23T00:59      <- wind_speed_10m: wind speed out of range [-50.0]
+2026-11-24 18:27:45 | INFO    | validator   |   invalid Almaty|2026-11-23T00:00      <- record_id: record_id is duplicated [Almaty|2026-11-23T00:00]
+2026-11-24 18:27:45 | INFO    | main        | ==================== STAGE: cleaner ====================
+2026-11-24 18:27:46 | INFO    | cleaner     | Cleaning 768 validated records
+2026-11-24 18:27:46 | INFO    | cleaner     | missing before=none | imputed wind=0 | duplicates removed=0 | test removed=0
+2026-11-24 18:27:46 | INFO    | cleaner     | filter windy&cold=2 | humid daytime wet/fog=88
+2026-11-24 18:27:46 | INFO    | cleaner     | CLEAN records: 768 -> clean_data.csv
+2026-11-24 18:27:46 | INFO    | main        | ==================== STAGE: loader ====================
+2026-11-24 18:27:47 | INFO    | loader      | LOAD #1: attempted=768 inserted=768 total_in_db=768
+2026-11-24 18:27:47 | INFO    | loader      | LOAD #2: attempted=768 inserted=0 total_in_db=768
+2026-11-24 18:27:47 | INFO    | loader      | IDEMPOTENCY PASSED (checksum #1 e887b40d4898... / #2 e887b40d4898...)
+2026-11-24 18:27:47 | INFO    | loader      | SQL total_rows         -> [(768,)]
+2026-11-24 18:27:47 | INFO    | loader      | SQL rows_per_city      -> [('Aktau', 96, 8.88), ('Aktobe', 96, 2.57), ('Almaty', 96, 8.82)]
+2026-11-24 18:27:47 | INFO    | loader      | SQL time_range         -> [('2026-11-23T00:00', '2026-11-26T23:00')]
+2026-11-24 18:27:47 | INFO    | loader      | SQL duplicate_check    -> (no rows)
+2026-11-24 18:27:47 | INFO    | loader      | SQL null_check         -> [(0, 0, 0)]
+2026-11-24 18:27:47 | INFO    | loader      | SQL weather_categories -> [('Cloudy', 488), ('Drizzle', 110), ('Clear', 91)]
+2026-11-24 18:27:47 | INFO    | loader      | SQL top5_coldest_hours -> [('Aktobe', '2026-11-26T23:00', -1.8), ('Aktobe', '2026-11-26T22:00', -1.7), ('Pavlodar', '2026-11-26T03:00', -1.7)]
+2026-11-24 18:27:47 | INFO    | loader      | SQL orphan_check       -> [(0,)]
+2026-11-24 18:27:47 | INFO    | loader      | Processed=768 | stored in SQLite=768
+2026-11-24 18:27:47 | INFO    | main        | ==================== STAGE: analysis ====================
+2026-11-24 18:27:48 | INFO    | analysis    | Dataset shape: (768, 22)
+2026-11-24 18:27:48 | INFO    | analysis    | figure saved: figures/fig01_temperature_timeseries.png
+2026-11-24 18:27:48 | INFO    | analysis    | figure saved: figures/fig02_humidity_boxplot_by_city.png
+2026-11-24 18:27:48 | INFO    | analysis    | figure saved: figures/fig03_weather_category_counts.png
+2026-11-24 18:27:49 | INFO    | analysis    | figure saved: figures/fig04_temperature_vs_humidity.png
+2026-11-24 18:27:49 | INFO    | analysis    | figure saved: figures/fig05_correlation_heatmap.png
+2026-11-24 18:27:49 | INFO    | analysis    | figure saved: figures/fig06_city_part_of_day_heatmap.png
+2026-11-24 18:27:49 | INFO    | analysis    | FINDING: RQ1 - The warmest city over the period is Shymkent (13.6 °C mean) and the coldest is Pavlodar (2.6 °C); the spread of city means is 11.0 °C.
+2026-11-24 18:27:49 | INFO    | analysis    | FINDING: RQ1 - The most humid city is Astana (90 % mean) and the windiest is Aktau (mean 19.8 km/h, peak 40 km/h).
+2026-11-24 18:27:49 | INFO    | analysis    | FINDING: RQ2 - Temperature and humidity show a moderate negative correlation (Pearson r = -0.60).
+2026-11-24 18:27:49 | INFO    | analysis    | FINDING: RQ3 - The most frequent weather category is 'Cloudy' (64 % of hours), followed by 'Drizzle'.
+2026-11-24 18:27:49 | INFO    | analysis    | FINDING: RQ3 - Over the whole sample the warmest part of the day is Afternoon (7.5 °C) and the coldest is Night (5.0 °C).
+2026-11-24 18:27:49 | INFO    | main        | ==================== STAGE: verify ====================
+2026-11-24 18:27:49 | INFO    | verify      | Records collected from the API                          768
+2026-11-24 18:27:49 | INFO    | verify      | Deliberate invalid test records added by producer         5
+2026-11-24 18:27:49 | INFO    | verify      | Messages published to Kafka                             773
+2026-11-24 18:27:49 | INFO    | verify      | Messages consumed from Kafka                            773
+2026-11-24 18:27:49 | INFO    | verify      | Valid records (Pandera)                                 768
+2026-11-24 18:27:49 | INFO    | verify      | Invalid records (Pandera)                                 5
+2026-11-24 18:27:49 | INFO    | verify      | Records after cleaning                                  768
+2026-11-24 18:27:49 | INFO    | verify      | Records stored in SQLite3                               768
+2026-11-24 18:27:49 | INFO    | verify      | [PASS] API records >= 200
+2026-11-24 18:27:49 | INFO    | verify      | [PASS] Published messages >= 200
+2026-11-24 18:27:49 | INFO    | verify      | [PASS] Consumed messages >= 200
+2026-11-24 18:27:49 | INFO    | verify      | [PASS] published == API records + test records
+2026-11-24 18:27:49 | INFO    | verify      | [PASS] consumed == published
+2026-11-24 18:27:49 | INFO    | verify      | [PASS] valid + invalid == consumed
+2026-11-24 18:27:49 | INFO    | verify      | [PASS] all deliberate test records detected by Pandera
+2026-11-24 18:27:49 | INFO    | verify      | [PASS] at least 3 invalid test records demonstrated
+2026-11-24 18:27:49 | INFO    | verify      | [PASS] cleaned == valid - test - duplicates
+2026-11-24 18:27:49 | INFO    | verify      | [PASS] stored in SQLite == cleaned
+2026-11-24 18:27:49 | INFO    | verify      | [PASS] idempotent loading (2nd run adds 0 rows, same checksum)
+2026-11-24 18:27:49 | INFO    | verify      | [PASS] SQLite integrity_check == ok
+2026-11-24 18:27:49 | INFO    | verify      | [PASS] no duplicate record_id in SQLite
+2026-11-24 18:27:49 | INFO    | verify      | PIPELINE VERIFIED - all checks passed
+2026-11-24 18:27:49 | INFO    | main        | Pipeline finished successfully.
+2026-11-24 18:29:07 | INFO    | main        | ==================== STAGE: api_client ====================
+2026-11-24 18:29:08 | INFO    | api_client  | Collecting data from https://api.open-meteo.com/v1/forecast
+2026-11-24 18:29:08 | INFO    | api_client  | Almaty     -> 96 hourly records
+2026-11-24 18:29:08 | INFO    | api_client  | Astana     -> 96 hourly records
+2026-11-24 18:29:09 | INFO    | api_client  | Shymkent   -> 96 hourly records
+2026-11-24 18:29:09 | INFO    | api_client  | Aktobe     -> 96 hourly records
+2026-11-24 18:29:10 | INFO    | api_client  | Karaganda  -> 96 hourly records
+2026-11-24 18:29:10 | INFO    | api_client  | Atyrau     -> 96 hourly records
+2026-11-24 18:29:10 | INFO    | api_client  | Pavlodar   -> 96 hourly records
+2026-11-24 18:29:11 | INFO    | api_client  | Aktau      -> 96 hourly records
+2026-11-24 18:29:11 | INFO    | api_client  | Collected 768 records (8/8 cities OK) -> raw_data.csv
+2026-11-24 18:29:11 | INFO    | main        | ==================== STAGE: producer ====================
+2026-11-24 18:29:12 | INFO    | producer    | Connecting to Kafka broker at localhost:9092
+2026-11-24 18:29:12 | INFO    | producer    | Topic 'weather_raw' already exists - reusing it
+2026-11-24 18:29:12 | INFO    | producer    | PUBLISHED 773 messages (failed=0) to topic 'weather_raw' | run_id=20261124T132912-513cb9
+2026-11-24 18:29:12 | INFO    | main        | ==================== STAGE: consumer ====================
+2026-11-24 18:29:13 | INFO    | consumer    | Consuming topic 'weather_raw' (run_id=20261124T132912-513cb9, expected=773)
+2026-11-24 18:29:13 | INFO    | consumer    | CONSUMED 773 messages (errors=0, skipped=2319, stop=expected_count_reached) -> consumed_data.csv
+2026-11-24 18:29:13 | INFO    | main        | ==================== STAGE: validator ====================
+2026-11-24 18:29:14 | INFO    | validator   | Validating 773 consumed records against the Pandera schema (12 rules)
+2026-11-24 18:29:14 | INFO    | validator   | VALID=768  INVALID=5  (real invalid=0, test records detected=5/5)
+2026-11-24 18:29:14 | INFO    | validator   |   invalid Almaty|2026-11-23T00:15      <- relative_humidity_2m: humidity out of 0-100 [135.0]
+2026-11-24 18:29:14 | INFO    | validator   |   invalid Almaty|2026-11-23T00:30      <- temperature_2m: not_nullable [nan]
+2026-11-24 18:29:14 | INFO    | validator   |   invalid Almaty|2026-11-23T00:45      <- weather_code: unknown weather code [999]
+2026-11-24 18:29:14 | INFO    | validator   |   invalid Almaty|2026-11-23T00:59      <- wind_speed_10m: wind speed out of range [-50.0]
+2026-11-24 18:29:14 | INFO    | validator   |   invalid Almaty|2026-11-23T00:00      <- record_id: record_id is duplicated [Almaty|2026-11-23T00:00]
+2026-11-24 18:29:14 | INFO    | main        | ==================== STAGE: cleaner ====================
+2026-11-24 18:29:15 | INFO    | cleaner     | Cleaning 768 validated records
+2026-11-24 18:29:15 | INFO    | cleaner     | missing before=none | imputed wind=0 | duplicates removed=0 | test removed=0
+2026-11-24 18:29:15 | INFO    | cleaner     | filter windy&cold=2 | humid daytime wet/fog=88
+2026-11-24 18:29:15 | INFO    | cleaner     | CLEAN records: 768 -> clean_data.csv
+2026-11-24 18:29:15 | INFO    | main        | ==================== STAGE: loader ====================
+2026-11-24 18:29:15 | INFO    | loader      | LOAD #1: attempted=768 inserted=768 total_in_db=768
+2026-11-24 18:29:15 | INFO    | loader      | LOAD #2: attempted=768 inserted=0 total_in_db=768
+2026-11-24 18:29:15 | INFO    | loader      | IDEMPOTENCY PASSED (checksum #1 e887b40d4898... / #2 e887b40d4898...)
+2026-11-24 18:29:15 | INFO    | loader      | SQL total_rows         -> [(768,)]
+2026-11-24 18:29:15 | INFO    | loader      | SQL rows_per_city      -> [('Aktau', 96, 8.88), ('Aktobe', 96, 2.57), ('Almaty', 96, 8.82)]
+2026-11-24 18:29:15 | INFO    | loader      | SQL time_range         -> [('2026-11-23T00:00', '2026-11-26T23:00')]
+2026-11-24 18:29:15 | INFO    | loader      | SQL duplicate_check    -> (no rows)
+2026-11-24 18:29:15 | INFO    | loader      | SQL null_check         -> [(0, 0, 0)]
+2026-11-24 18:29:15 | INFO    | loader      | SQL weather_categories -> [('Cloudy', 488), ('Drizzle', 110), ('Clear', 91)]
+2026-11-24 18:29:15 | INFO    | loader      | SQL top5_coldest_hours -> [('Aktobe', '2026-11-26T23:00', -1.8), ('Aktobe', '2026-11-26T22:00', -1.7), ('Pavlodar', '2026-11-26T03:00', -1.7)]
+2026-11-24 18:29:15 | INFO    | loader      | SQL orphan_check       -> [(0,)]
+2026-11-24 18:29:15 | INFO    | loader      | Processed=768 | stored in SQLite=768
+2026-11-24 18:29:15 | INFO    | main        | ==================== STAGE: analysis ====================
+2026-11-24 18:29:16 | INFO    | analysis    | Dataset shape: (768, 22)
+2026-11-24 18:29:17 | INFO    | analysis    | figure saved: figures/fig01_temperature_timeseries.png
+2026-11-24 18:29:17 | INFO    | analysis    | figure saved: figures/fig02_humidity_boxplot_by_city.png
+2026-11-24 18:29:17 | INFO    | analysis    | figure saved: figures/fig03_weather_category_counts.png
+2026-11-24 18:29:17 | INFO    | analysis    | figure saved: figures/fig04_temperature_vs_humidity.png
+2026-11-24 18:29:17 | INFO    | analysis    | figure saved: figures/fig05_correlation_heatmap.png
+2026-11-24 18:29:18 | INFO    | analysis    | figure saved: figures/fig06_city_part_of_day_heatmap.png
+2026-11-24 18:29:18 | INFO    | analysis    | FINDING: RQ1 - The warmest city over the period is Shymkent (13.6 °C mean) and the coldest is Pavlodar (2.6 °C); the spread of city means is 11.0 °C.
+2026-11-24 18:29:18 | INFO    | analysis    | FINDING: RQ1 - The most humid city is Astana (90 % mean) and the windiest is Aktau (mean 19.8 km/h, peak 40 km/h).
+2026-11-24 18:29:18 | INFO    | analysis    | FINDING: RQ2 - Temperature and humidity show a moderate negative correlation (Pearson r = -0.60).
+2026-11-24 18:29:18 | INFO    | analysis    | FINDING: RQ3 - The most frequent weather category is 'Cloudy' (64 % of hours), followed by 'Drizzle'.
+2026-11-24 18:29:18 | INFO    | analysis    | FINDING: RQ3 - Over the whole sample the warmest part of the day is Afternoon (7.5 °C) and the coldest is Night (5.0 °C).
+2026-11-24 18:29:18 | INFO    | main        | ==================== STAGE: verify ====================
+2026-11-24 18:29:18 | INFO    | verify      | Records collected from the API                          768
+2026-11-24 18:29:18 | INFO    | verify      | Deliberate invalid test records added by producer         5
+2026-11-24 18:29:18 | INFO    | verify      | Messages published to Kafka                             773
+2026-11-24 18:29:18 | INFO    | verify      | Messages consumed from Kafka                            773
+2026-11-24 18:29:18 | INFO    | verify      | Valid records (Pandera)                                 768
+2026-11-24 18:29:18 | INFO    | verify      | Invalid records (Pandera)                                 5
+2026-11-24 18:29:18 | INFO    | verify      | Records after cleaning                                  768
+2026-11-24 18:29:18 | INFO    | verify      | Records stored in SQLite3                               768
+2026-11-24 18:29:18 | INFO    | verify      | [PASS] API records >= 200
+2026-11-24 18:29:18 | INFO    | verify      | [PASS] Published messages >= 200
+2026-11-24 18:29:18 | INFO    | verify      | [PASS] Consumed messages >= 200
+2026-11-24 18:29:18 | INFO    | verify      | [PASS] published == API records + test records
+2026-11-24 18:29:18 | INFO    | verify      | [PASS] consumed == published
+2026-11-24 18:29:18 | INFO    | verify      | [PASS] valid + invalid == consumed
+2026-11-24 18:29:18 | INFO    | verify      | [PASS] all deliberate test records detected by Pandera
+2026-11-24 18:29:18 | INFO    | verify      | [PASS] at least 3 invalid test records demonstrated
+2026-11-24 18:29:18 | INFO    | verify      | [PASS] cleaned == valid - test - duplicates
+2026-11-24 18:29:18 | INFO    | verify      | [PASS] stored in SQLite == cleaned
+2026-11-24 18:29:18 | INFO    | verify      | [PASS] idempotent loading (2nd run adds 0 rows, same checksum)
+2026-11-24 18:29:18 | INFO    | verify      | [PASS] SQLite integrity_check == ok
+2026-11-24 18:29:18 | INFO    | verify      | [PASS] no duplicate record_id in SQLite
+2026-11-24 18:29:18 | INFO    | verify      | PIPELINE VERIFIED - all checks passed
+2026-11-24 18:29:18 | INFO    | main        | Pipeline finished successfully.
+2026-11-24 18:30:39 | INFO    | main        | ==================== STAGE: api_client ====================
+2026-11-24 18:30:40 | INFO    | api_client  | Collecting data from https://api.open-meteo.com/v1/forecast
+2026-11-24 18:30:40 | INFO    | api_client  | Almaty     -> 96 hourly records
+2026-11-24 18:30:40 | INFO    | api_client  | Astana     -> 96 hourly records
+2026-11-24 18:30:41 | INFO    | api_client  | Shymkent   -> 96 hourly records
+2026-11-24 18:30:41 | INFO    | api_client  | Aktobe     -> 96 hourly records
+2026-11-24 18:30:42 | INFO    | api_client  | Karaganda  -> 96 hourly records
+2026-11-24 18:30:42 | INFO    | api_client  | Atyrau     -> 96 hourly records
+2026-11-24 18:30:43 | INFO    | api_client  | Pavlodar   -> 96 hourly records
+2026-11-24 18:30:43 | INFO    | api_client  | Aktau      -> 96 hourly records
+2026-11-24 18:30:43 | INFO    | api_client  | Collected 768 records (8/8 cities OK) -> raw_data.csv
+2026-11-24 18:30:43 | INFO    | main        | ==================== STAGE: producer ====================
+2026-11-24 18:30:44 | INFO    | producer    | Connecting to Kafka broker at localhost:9092
+2026-11-24 18:30:44 | INFO    | producer    | Topic 'weather_raw' already exists - reusing it
+2026-11-24 18:30:44 | INFO    | producer    | PUBLISHED 773 messages (failed=0) to topic 'weather_raw' | run_id=20261124T133044-8b1333
+2026-11-24 18:30:44 | INFO    | main        | ==================== STAGE: consumer ====================
+2026-11-24 18:30:45 | INFO    | consumer    | Consuming topic 'weather_raw' (run_id=20261124T133044-8b1333, expected=773)
+2026-11-24 18:30:45 | INFO    | consumer    | CONSUMED 773 messages (errors=0, skipped=3092, stop=expected_count_reached) -> consumed_data.csv
+2026-11-24 18:30:45 | INFO    | main        | ==================== STAGE: validator ====================
+2026-11-24 18:30:46 | INFO    | validator   | Validating 773 consumed records against the Pandera schema (12 rules)
+2026-11-24 18:30:46 | INFO    | validator   | VALID=768  INVALID=5  (real invalid=0, test records detected=5/5)
+2026-11-24 18:30:46 | INFO    | validator   |   invalid Almaty|2026-11-23T00:15      <- relative_humidity_2m: humidity out of 0-100 [135.0]
+2026-11-24 18:30:46 | INFO    | validator   |   invalid Almaty|2026-11-23T00:30      <- temperature_2m: not_nullable [nan]
+2026-11-24 18:30:46 | INFO    | validator   |   invalid Almaty|2026-11-23T00:45      <- weather_code: unknown weather code [999]
+2026-11-24 18:30:46 | INFO    | validator   |   invalid Almaty|2026-11-23T00:59      <- wind_speed_10m: wind speed out of range [-50.0]
+2026-11-24 18:30:46 | INFO    | validator   |   invalid Almaty|2026-11-23T00:00      <- record_id: record_id is duplicated [Almaty|2026-11-23T00:00]
+2026-11-24 18:30:46 | INFO    | main        | ==================== STAGE: cleaner ====================
+2026-11-24 18:30:47 | INFO    | cleaner     | Cleaning 768 validated records
+2026-11-24 18:30:47 | INFO    | cleaner     | missing before=none | imputed wind=0 | duplicates removed=0 | test removed=0
+2026-11-24 18:30:47 | INFO    | cleaner     | filter windy&cold=2 | humid daytime wet/fog=88
+2026-11-24 18:30:47 | INFO    | cleaner     | CLEAN records: 768 -> clean_data.csv
+2026-11-24 18:30:47 | INFO    | main        | ==================== STAGE: loader ====================
+2026-11-24 18:30:48 | INFO    | loader      | LOAD #1: attempted=768 inserted=768 total_in_db=768
+2026-11-24 18:30:48 | INFO    | loader      | LOAD #2: attempted=768 inserted=0 total_in_db=768
+2026-11-24 18:30:48 | INFO    | loader      | IDEMPOTENCY PASSED (checksum #1 e887b40d4898... / #2 e887b40d4898...)
+2026-11-24 18:30:48 | INFO    | loader      | SQL total_rows         -> [(768,)]
+2026-11-24 18:30:48 | INFO    | loader      | SQL rows_per_city      -> [('Aktau', 96, 8.88), ('Aktobe', 96, 2.57), ('Almaty', 96, 8.82)]
+2026-11-24 18:30:48 | INFO    | loader      | SQL time_range         -> [('2026-11-23T00:00', '2026-11-26T23:00')]
+2026-11-24 18:30:48 | INFO    | loader      | SQL duplicate_check    -> (no rows)
+2026-11-24 18:30:48 | INFO    | loader      | SQL null_check         -> [(0, 0, 0)]
+2026-11-24 18:30:48 | INFO    | loader      | SQL weather_categories -> [('Cloudy', 488), ('Drizzle', 110), ('Clear', 91)]
+2026-11-24 18:30:48 | INFO    | loader      | SQL top5_coldest_hours -> [('Aktobe', '2026-11-26T23:00', -1.8), ('Aktobe', '2026-11-26T22:00', -1.7), ('Pavlodar', '2026-11-26T03:00', -1.7)]
+2026-11-24 18:30:48 | INFO    | loader      | SQL orphan_check       -> [(0,)]
+2026-11-24 18:30:48 | INFO    | loader      | Processed=768 | stored in SQLite=768
+2026-11-24 18:30:48 | INFO    | main        | ==================== STAGE: analysis ====================
+2026-11-24 18:30:49 | INFO    | analysis    | Dataset shape: (768, 22)
+2026-11-24 18:30:49 | INFO    | analysis    | figure saved: figures/fig01_temperature_timeseries.png
+2026-11-24 18:30:49 | INFO    | analysis    | figure saved: figures/fig02_humidity_boxplot_by_city.png
+2026-11-24 18:30:49 | INFO    | analysis    | figure saved: figures/fig03_weather_category_counts.png
+2026-11-24 18:30:50 | INFO    | analysis    | figure saved: figures/fig04_temperature_vs_humidity.png
+2026-11-24 18:30:50 | INFO    | analysis    | figure saved: figures/fig05_correlation_heatmap.png
+2026-11-24 18:30:50 | INFO    | analysis    | figure saved: figures/fig06_city_part_of_day_heatmap.png
+2026-11-24 18:30:50 | INFO    | analysis    | FINDING: RQ1 - The warmest city over the period is Shymkent (13.6 °C mean) and the coldest is Pavlodar (2.6 °C); the spread of city means is 11.0 °C.
+2026-11-24 18:30:50 | INFO    | analysis    | FINDING: RQ1 - The most humid city is Astana (90 % mean) and the windiest is Aktau (mean 19.8 km/h, peak 40 km/h).
+2026-11-24 18:30:50 | INFO    | analysis    | FINDING: RQ2 - Temperature and humidity show a moderate negative correlation (Pearson r = -0.60).
+2026-11-24 18:30:50 | INFO    | analysis    | FINDING: RQ3 - The most frequent weather category is 'Cloudy' (64 % of hours), followed by 'Drizzle'.
+2026-11-24 18:30:50 | INFO    | analysis    | FINDING: RQ3 - Over the whole sample the warmest part of the day is Afternoon (7.5 °C) and the coldest is Night (5.0 °C).
+2026-11-24 18:30:50 | INFO    | main        | ==================== STAGE: verify ====================
+2026-11-24 18:30:50 | INFO    | verify      | Records collected from the API                          768
+2026-11-24 18:30:50 | INFO    | verify      | Deliberate invalid test records added by producer         5
+2026-11-24 18:30:50 | INFO    | verify      | Messages published to Kafka                             773
+2026-11-24 18:30:50 | INFO    | verify      | Messages consumed from Kafka                            773
+2026-11-24 18:30:50 | INFO    | verify      | Valid records (Pandera)                                 768
+2026-11-24 18:30:50 | INFO    | verify      | Invalid records (Pandera)                                 5
+2026-11-24 18:30:50 | INFO    | verify      | Records after cleaning                                  768
+2026-11-24 18:30:50 | INFO    | verify      | Records stored in SQLite3                               768
+2026-11-24 18:30:50 | INFO    | verify      | [PASS] API records >= 200
+2026-11-24 18:30:50 | INFO    | verify      | [PASS] Published messages >= 200
+2026-11-24 18:30:50 | INFO    | verify      | [PASS] Consumed messages >= 200
+2026-11-24 18:30:50 | INFO    | verify      | [PASS] published == API records + test records
+2026-11-24 18:30:50 | INFO    | verify      | [PASS] consumed == published
+2026-11-24 18:30:50 | INFO    | verify      | [PASS] valid + invalid == consumed
+2026-11-24 18:30:50 | INFO    | verify      | [PASS] all deliberate test records detected by Pandera
+2026-11-24 18:30:50 | INFO    | verify      | [PASS] at least 3 invalid test records demonstrated
+2026-11-24 18:30:50 | INFO    | verify      | [PASS] cleaned == valid - test - duplicates
+2026-11-24 18:30:50 | INFO    | verify      | [PASS] stored in SQLite == cleaned
+2026-11-24 18:30:50 | INFO    | verify      | [PASS] idempotent loading (2nd run adds 0 rows, same checksum)
+2026-11-24 18:30:50 | INFO    | verify      | [PASS] SQLite integrity_check == ok
+2026-11-24 18:30:50 | INFO    | verify      | [PASS] no duplicate record_id in SQLite
+2026-11-24 18:30:50 | INFO    | verify      | PIPELINE VERIFIED - all checks passed
+2026-11-24 18:30:50 | INFO    | main        | Pipeline finished successfully.
+2026-11-24 18:44:56 | INFO    | main        | ==================== STAGE: api_client ====================
+2026-11-24 18:44:56 | INFO    | api_client  | Collecting data from https://api.open-meteo.com/v1/forecast
+2026-11-24 18:44:57 | INFO    | api_client  | Almaty     -> 96 hourly records
+2026-11-24 18:44:57 | INFO    | api_client  | Astana     -> 96 hourly records
+2026-11-24 18:44:58 | INFO    | api_client  | Shymkent   -> 96 hourly records
+2026-11-24 18:44:58 | INFO    | api_client  | Aktobe     -> 96 hourly records
+2026-11-24 18:44:58 | INFO    | api_client  | Karaganda  -> 96 hourly records
+2026-11-24 18:44:59 | INFO    | api_client  | Atyrau     -> 96 hourly records
+2026-11-24 18:44:59 | INFO    | api_client  | Pavlodar   -> 96 hourly records
+2026-11-24 18:45:00 | INFO    | api_client  | Aktau      -> 96 hourly records
+2026-11-24 18:45:00 | INFO    | api_client  | Collected 768 records (8/8 cities OK) -> raw_data.csv
+2026-11-24 18:45:00 | INFO    | main        | ==================== STAGE: producer ====================
+2026-11-24 18:45:00 | INFO    | producer    | Connecting to Kafka broker at localhost:9092
+2026-11-24 18:45:01 | INFO    | producer    | Topic 'weather_raw' created (partitions=1)
+2026-11-24 18:45:02 | INFO    | producer    | PUBLISHED 773 messages (failed=0) to topic 'weather_raw' | run_id=20261124T134501-2dffb2
+2026-11-24 18:45:02 | INFO    | main        | ==================== STAGE: consumer ====================
+2026-11-24 18:45:02 | INFO    | consumer    | Consuming topic 'weather_raw' (run_id=20261124T134501-2dffb2, expected=773)
+2026-11-24 18:45:06 | INFO    | consumer    | CONSUMED 773 messages (errors=0, skipped=0, stop=expected_count_reached) -> consumed_data.csv
+2026-11-24 18:45:06 | INFO    | main        | ==================== STAGE: validator ====================
+2026-11-24 18:45:06 | INFO    | validator   | Validating 773 consumed records against the Pandera schema (12 rules)
+2026-11-24 18:45:06 | INFO    | validator   | VALID=768  INVALID=5  (real invalid=0, test records detected=5/5)
+2026-11-24 18:45:06 | INFO    | validator   |   invalid Almaty|2026-11-23T00:15      <- relative_humidity_2m: humidity out of 0-100 [135.0]
+2026-11-24 18:45:06 | INFO    | validator   |   invalid Almaty|2026-11-23T00:30      <- temperature_2m: not_nullable [nan]
+2026-11-24 18:45:06 | INFO    | validator   |   invalid Almaty|2026-11-23T00:45      <- weather_code: unknown weather code [999]
+2026-11-24 18:45:06 | INFO    | validator   |   invalid Almaty|2026-11-23T00:59      <- wind_speed_10m: wind speed out of range [-50.0]
+2026-11-24 18:45:06 | INFO    | validator   |   invalid Almaty|2026-11-23T00:00      <- record_id: record_id is duplicated [Almaty|2026-11-23T00:00]
+2026-11-24 18:45:07 | INFO    | main        | ==================== STAGE: cleaner ====================
+2026-11-24 18:45:07 | INFO    | cleaner     | Cleaning 768 validated records
+2026-11-24 18:45:07 | INFO    | cleaner     | missing before=none | imputed wind=0 | duplicates removed=0 | test removed=0
+2026-11-24 18:45:07 | INFO    | cleaner     | filter windy&cold=2 | humid daytime wet/fog=88
+2026-11-24 18:45:07 | INFO    | cleaner     | CLEAN records: 768 -> clean_data.csv
+2026-11-24 18:45:07 | INFO    | main        | ==================== STAGE: loader ====================
+2026-11-24 18:45:08 | INFO    | loader      | LOAD #1: attempted=768 inserted=768 total_in_db=768
+2026-11-24 18:45:08 | INFO    | loader      | LOAD #2: attempted=768 inserted=0 total_in_db=768
+2026-11-24 18:45:08 | INFO    | loader      | IDEMPOTENCY PASSED (checksum #1 e887b40d4898... / #2 e887b40d4898...)
+2026-11-24 18:45:08 | INFO    | loader      | SQL total_rows         -> [(768,)]
+2026-11-24 18:45:08 | INFO    | loader      | SQL rows_per_city      -> [('Aktau', 96, 8.88), ('Aktobe', 96, 2.57), ('Almaty', 96, 8.82)]
+2026-11-24 18:45:08 | INFO    | loader      | SQL time_range         -> [('2026-11-23T00:00', '2026-11-26T23:00')]
+2026-11-24 18:45:08 | INFO    | loader      | SQL duplicate_check    -> (no rows)
+2026-11-24 18:45:08 | INFO    | loader      | SQL null_check         -> [(0, 0, 0)]
+2026-11-24 18:45:08 | INFO    | loader      | SQL weather_categories -> [('Cloudy', 488), ('Drizzle', 110), ('Clear', 91)]
+2026-11-24 18:45:08 | INFO    | loader      | SQL top5_coldest_hours -> [('Aktobe', '2026-11-26T23:00', -1.8), ('Aktobe', '2026-11-26T22:00', -1.7), ('Pavlodar', '2026-11-26T03:00', -1.7)]
+2026-11-24 18:45:08 | INFO    | loader      | SQL orphan_check       -> [(0,)]
+2026-11-24 18:45:08 | INFO    | loader      | Processed=768 | stored in SQLite=768
+2026-11-24 18:45:08 | INFO    | main        | ==================== STAGE: analysis ====================
+2026-11-24 18:45:09 | INFO    | analysis    | Dataset shape: (768, 22)
+2026-11-24 18:45:09 | INFO    | analysis    | figure saved: figures/fig01_temperature_timeseries.png
+2026-11-24 18:45:09 | INFO    | analysis    | figure saved: figures/fig02_humidity_boxplot_by_city.png
+2026-11-24 18:45:10 | INFO    | analysis    | figure saved: figures/fig03_weather_category_counts.png
+2026-11-24 18:45:10 | INFO    | analysis    | figure saved: figures/fig04_temperature_vs_humidity.png
+2026-11-24 18:45:10 | INFO    | analysis    | figure saved: figures/fig05_correlation_heatmap.png
+2026-11-24 18:45:10 | INFO    | analysis    | figure saved: figures/fig06_city_part_of_day_heatmap.png
+2026-11-24 18:45:10 | INFO    | analysis    | FINDING: RQ1 - The warmest city over the period is Shymkent (13.6 °C mean) and the coldest is Pavlodar (2.6 °C); the spread of city means is 11.0 °C.
+2026-11-24 18:45:10 | INFO    | analysis    | FINDING: RQ1 - The most humid city is Astana (90 % mean) and the windiest is Aktau (mean 19.8 km/h, peak 40 km/h).
+2026-11-24 18:45:10 | INFO    | analysis    | FINDING: RQ2 - Temperature and humidity show a moderate negative correlation (Pearson r = -0.60).
+2026-11-24 18:45:10 | INFO    | analysis    | FINDING: RQ3 - The most frequent weather category is 'Cloudy' (64 % of hours), followed by 'Drizzle'.
+2026-11-24 18:45:10 | INFO    | analysis    | FINDING: RQ3 - Over the whole sample the warmest part of the day is Afternoon (7.5 °C) and the coldest is Night (5.0 °C).
+2026-11-24 18:45:11 | INFO    | main        | ==================== STAGE: verify ====================
+2026-11-24 18:45:11 | INFO    | verify      | Records collected from the API                          768
+2026-11-24 18:45:11 | INFO    | verify      | Deliberate invalid test records added by producer         5
+2026-11-24 18:45:11 | INFO    | verify      | Messages published to Kafka                             773
+2026-11-24 18:45:11 | INFO    | verify      | Messages consumed from Kafka                            773
+2026-11-24 18:45:11 | INFO    | verify      | Valid records (Pandera)                                 768
+2026-11-24 18:45:11 | INFO    | verify      | Invalid records (Pandera)                                 5
+2026-11-24 18:45:11 | INFO    | verify      | Records after cleaning                                  768
+2026-11-24 18:45:11 | INFO    | verify      | Records stored in SQLite3                               768
+2026-11-24 18:45:11 | INFO    | verify      | [PASS] API records >= 200
+2026-11-24 18:45:11 | INFO    | verify      | [PASS] Published messages >= 200
+2026-11-24 18:45:11 | INFO    | verify      | [PASS] Consumed messages >= 200
+2026-11-24 18:45:11 | INFO    | verify      | [PASS] published == API records + test records
+2026-11-24 18:45:11 | INFO    | verify      | [PASS] consumed == published
+2026-11-24 18:45:11 | INFO    | verify      | [PASS] valid + invalid == consumed
+2026-11-24 18:45:11 | INFO    | verify      | [PASS] all deliberate test records detected by Pandera
+2026-11-24 18:45:11 | INFO    | verify      | [PASS] at least 3 invalid test records demonstrated
+2026-11-24 18:45:11 | INFO    | verify      | [PASS] cleaned == valid - test - duplicates
+2026-11-24 18:45:11 | INFO    | verify      | [PASS] stored in SQLite == cleaned
+2026-11-24 18:45:11 | INFO    | verify      | [PASS] idempotent loading (2nd run adds 0 rows, same checksum)
+2026-11-24 18:45:11 | INFO    | verify      | [PASS] SQLite integrity_check == ok
+2026-11-24 18:45:11 | INFO    | verify      | [PASS] no duplicate record_id in SQLite
+2026-11-24 18:45:11 | INFO    | verify      | PIPELINE VERIFIED - all checks passed
+2026-11-24 18:45:11 | INFO    | main        | Pipeline finished successfully.

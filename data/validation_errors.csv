@@ -1,0 +1,6 @@
+row_index,column,check,failure_case
+772,record_id,record_id is duplicated,Almaty|2026-11-23T00:00
+769,temperature_2m,not_nullable,nan
+768,relative_humidity_2m,humidity out of 0-100,135.0
+771,wind_speed_10m,wind speed out of range,-50.0
+770,weather_code,unknown weather code,999

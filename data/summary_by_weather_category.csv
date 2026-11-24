@@ -1,0 +1,8 @@
+weather_category,hours,temp_mean,humidity_mean,wind_mean
+Cloudy,488,6.03,75.86,15.27
+Drizzle,110,5.51,93.82,15.23
+Clear,91,6.93,77.63,8.12
+Fog,30,6.02,87.3,6.47
+Rain,25,3.64,87.36,18.78
+Showers,15,6.15,90.07,15.48
+Snow,9,0.39,89.44,18.03

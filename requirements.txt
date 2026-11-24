@@ -1,0 +1,10 @@
+# Python 3.10 - 3.12 recommended
+requests>=2.31
+pandas>=2.2,<3
+numpy>=1.26
+pandera>=0.24,<1
+confluent-kafka>=2.5
+matplotlib>=3.8
+seaborn>=0.13
+reportlab>=4.0
+pytest>=8.0

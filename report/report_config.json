@@ -1,0 +1,23 @@
+{
+  "project_title": "Streaming and Validation Pipeline for Open-Meteo Weather Data",
+  "course": "Data Collection & Preparation",
+  "submission_date": "24-11-2026",
+  "members": [
+    {
+      "name": "Assylbekov Yerbol (23B031223)",
+      "contribution": "Data collection and project integration: src/api_client.py (Open-Meteo requests, error handling, raw_data.csv), main.py (pipeline orchestration), src/verify (record-count checks), requirements.txt, .env.example, GitHub repository setup"
+    },
+    {
+      "name": "Baigabyl Nurdaulet (23B031236)",
+      "contribution": "Apache Kafka streaming: docker-compose.yml (Kafka broker), src/producer.py (topic creation, JSON serialization, publishing, test records), src/consumer.py (JSON deserialization, termination condition, error handling), Kafka sections of the report and README"
+    },
+    {
+      "name": "Kulmakhanbet Nurbakyt (23B030367)",
+      "contribution": "Validation and cleaning: src/validator.py (Pandera schema, 12 rules, invalid-record handling), tests/ (pytest validation tests), src/cleaner.py (missing values, duplicates, type conversion, text normalization, NumPy operations, filtering, GroupBy, pivot_table/melt), docs/data_dictionary.md"
+    },
+    {
+      "name": "Nakypbek Nurassyl (23B031383)",
+      "contribution": "Database and analysis: src/loader.py (SQLite schema, primary key, UPSERT and idempotency test, SQL verification queries in sql/), src/analysis.py (descriptive statistics, grouped analysis, 6 Matplotlib/Seaborn figures, findings), report/project_report.pdf (assembly, architecture diagram, conclusions)"
+    }
+  ]
+}

@@ -1,0 +1,620 @@
+{
+  "api": {
+    "endpoint": "https://api.open-meteo.com/v1/forecast",
+    "request_parameters": {
+      "latitude": 43.25,
+      "longitude": 76.95,
+      "hourly": "temperature_2m,relative_humidity_2m,wind_speed_10m,weather_code",
+      "forecast_days": 3,
+      "past_days": 1,
+      "timezone": "Asia/Almaty",
+      "temperature_unit": "celsius",
+      "wind_speed_unit": "kmh",
+      "latitude/longitude": "one request per city"
+    },
+    "cities_requested": 8,
+    "cities_ok": 8,
+    "cities_failed": [],
+    "records_collected": 768,
+    "time_min": "2026-11-23T00:00",
+    "time_max": "2026-11-26T23:00",
+    "missing_values_in_raw": {},
+    "collected_at": "2026-11-24T13:45:00Z"
+  },
+  "producer": {
+    "run_id": "20261124T134501-2dffb2",
+    "topic": "weather_raw",
+    "broker": "localhost:9092",
+    "partitions": 1,
+    "api_records_sent": 768,
+    "test_records_sent": 5,
+    "messages_queued": 773,
+    "published": 773,
+    "delivery_failed": 0,
+    "serialization_errors": 0,
+    "duration_s": 1.1,
+    "finished_at": "2026-11-24T13:45:02Z"
+  },
+  "consumer": {
+    "run_id": "20261124T134501-2dffb2",
+    "topic": "weather_raw",
+    "expected": 773,
+    "consumed": 773,
+    "deserialization_errors": 0,
+    "skipped_other_runs": 0,
+    "broker_errors": 0,
+    "terminated_by": "expected_count_reached",
+    "offsets_per_partition": {
+      "0": [
+        0,
+        772
+      ]
+    },
+    "duration_s": 3.12,
+    "finished_at": "2026-11-24T13:45:06Z"
+  },
+  "validation": {
+    "received": 773,
+    "valid": 768,
+    "invalid": 5,
+    "real_records_invalid": 0,
+    "test_records_total": 5,
+    "test_records_detected": 5,
+    "test_records_missed": 0,
+    "rules_count": 12,
+    "errors_by_rule": {
+      "record_id: record_id is duplicated": 1,
+      "relative_humidity_2m: humidity out of 0-100": 1,
+      "temperature_2m: not_nullable": 1,
+      "weather_code: unknown weather code": 1,
+      "wind_speed_10m: wind speed out of range": 1
+    },
+    "strategy": "quarantine invalid rows in data/quarantine_invalid.csv; valid rows continue"
+  },
+  "cleaning": {
+    "input_records": 768,
+    "test_records_removed": 0,
+    "missing_before": {},
+    "wind_values_imputed": 0,
+    "missing_after": 0,
+    "duplicates_removed": 0,
+    "filter_windy_cold": 2,
+    "filter_humid_daytime_precipitation_or_fog": 88,
+    "records_after_cleaning": 768,
+    "pivot_shape": [
+      8,
+      4
+    ],
+    "long_format_shape": [
+      64,
+      3
+    ],
+    "city_summary_rows": 8,
+    "why_each_step": {
+      "missing values": "Wind speed can be missing in forecasts; dropping rows would waste valid temperature/humidity data, so gaps are filled with the per-city median and flagged in 'wind_imputed'.",
+      "duplicates": "Repeated API reads or retried Kafka deliveries would double-count hours and distort every average.",
+      "test records": "Synthetic invalid records exist only to prove that validation works and must never reach the database.",
+      "type conversion": "CSV stores everything as text; real datetime/int/category types are needed for time features, memory efficiency and correct sorting.",
+      "text normalisation": "Consistent city/country spelling prevents one city being split into several groups.",
+      "numpy features": "Dew point, wind chill, m/s speed and z-scores turn raw measurements into comparable, physically meaningful indicators (vectorised with NumPy).",
+      "filtering": "Multi-condition filters isolate harsh-weather hours that matter for the analysis.",
+      "groupby": "Per-city and per-weather-category aggregates answer the research questions.",
+      "reshaping": "pivot_table gives a city x part-of-day matrix; melt creates a long format suitable for plotting/SQL."
+    }
+  },
+  "sqlite": {
+    "db_path": "data/output.db",
+    "records_processed": 768,
+    "records_stored": 768,
+    "load_1": {
+      "rows_before": 0,
+      "rows_attempted": 768,
+      "rows_after": 768,
+      "rows_inserted": 768
+    },
+    "checksum_1": "e887b40d48989969567dc8e6262e0ed44ec791b732837ad9b9887d912f91b718",
+    "load_2": {
+      "rows_before": 768,
+      "rows_attempted": 768,
+      "rows_after": 768,
+      "rows_inserted": 0
+    },
+    "checksum_2": "e887b40d48989969567dc8e6262e0ed44ec791b732837ad9b9887d912f91b718",
+    "idempotency_passed": true,
+    "verification": {
+      "total_rows": {
+        "columns": [
+          "total_rows"
+        ],
+        "rows": [
+          [
+            768
+          ]
+        ],
+        "row_count": 1
+      },
+      "rows_per_city": {
+        "columns": [
+          "city",
+          "rows",
+          "avg_temp_c"
+        ],
+        "rows": [
+          [
+            "Aktau",
+            96,
+            8.88
+          ],
+          [
+            "Aktobe",
+            96,
+            2.57
+          ],
+          [
+            "Almaty",
+            96,
+            8.82
+          ],
+          [
+            "Astana",
+            96,
+            3.03
+          ],
+          [
+            "Atyrau",
+            96,
+            4.25
+          ],
+          [
+            "Karaganda",
+            96,
+            3.67
+          ],
+          [
+            "Pavlodar",
+            96,
+            2.57
+          ],
+          [
+            "Shymkent",
+            96,
+            13.57
+          ]
+        ],
+        "row_count": 8
+      },
+      "time_range": {
+        "columns": [
+          "first_hour",
+          "last_hour"
+        ],
+        "rows": [
+          [
+            "2026-11-23T00:00",
+            "2026-11-26T23:00"
+          ]
+        ],
+        "row_count": 1
+      },
+      "duplicate_check": {
+        "columns": [
+          "record_id",
+          "copies"
+        ],
+        "rows": [],
+        "row_count": 0
+      },
+      "null_check": {
+        "columns": [
+          "null_temp",
+          "null_humidity",
+          "null_category"
+        ],
+        "rows": [
+          [
+            0,
+            0,
+            0
+          ]
+        ],
+        "row_count": 1
+      },
+      "weather_categories": {
+        "columns": [
+          "weather_category",
+          "hours"
+        ],
+        "rows": [
+          [
+            "Cloudy",
+            488
+          ],
+          [
+            "Drizzle",
+            110
+          ],
+          [
+            "Clear",
+            91
+          ],
+          [
+            "Fog",
+            30
+          ],
+          [
+            "Rain",
+            25
+          ],
+          [
+            "Showers",
+            15
+          ],
+          [
+            "Snow",
+            9
+          ]
+        ],
+        "row_count": 7
+      },
+      "top5_coldest_hours": {
+        "columns": [
+          "city",
+          "observation_time",
+          "temperature_c"
+        ],
+        "rows": [
+          [
+            "Aktobe",
+            "2026-11-26T23:00",
+            -1.8
+          ],
+          [
+            "Aktobe",
+            "2026-11-26T22:00",
+            -1.7
+          ],
+          [
+            "Pavlodar",
+            "2026-11-26T03:00",
+            -1.7
+          ],
+          [
+            "Pavlodar",
+            "2026-11-26T07:00",
+            -1.7
+          ],
+          [
+            "Pavlodar",
+            "2026-11-26T04:00",
+            -1.6
+          ]
+        ],
+        "row_count": 5
+      },
+      "orphan_check": {
+        "columns": [
+          "rows_without_city"
+        ],
+        "rows": [
+          [
+            0
+          ]
+        ],
+        "row_count": 1
+      },
+      "pragma_integrity_check": "ok",
+      "pragma_foreign_key_violations": 0
+    }
+  },
+  "eda": {
+    "shape": [
+      768,
+      22
+    ],
+    "dtypes": {
+      "record_id": "object",
+      "city": "object",
+      "observation_time": "object",
+      "observation_date": "object",
+      "hour": "int64",
+      "part_of_day": "object",
+      "temperature_c": "float64",
+      "humidity_pct": "float64",
+      "wind_speed_kmh": "float64",
+      "wind_speed_ms": "float64",
+      "weather_code": "int64",
+      "weather_category": "object",
+      "weather_description": "object",
+      "dew_point_c": "float64",
+      "wind_chill_c": "float64",
+      "temp_zscore": "float64",
+      "comfort_level": "object",
+      "wind_imputed": "int64",
+      "country": "object",
+      "latitude": "float64",
+      "longitude": "float64",
+      "time": "datetime64[ns]"
+    },
+    "describe": {
+      "temperature_c": {
+        "count": 768.0,
+        "mean": 5.92,
+        "std": 4.82,
+        "min": -1.8,
+        "25%": 2.2,
+        "50%": 5.1,
+        "75%": 8.33,
+        "max": 25.7
+      },
+      "humidity_pct": {
+        "count": 768.0,
+        "mean": 79.9,
+        "std": 16.84,
+        "min": 22.0,
+        "25%": 72.0,
+        "50%": 85.0,
+        "75%": 92.25,
+        "max": 100.0
+      },
+      "wind_speed_kmh": {
+        "count": 768.0,
+        "mean": 14.22,
+        "std": 8.77,
+        "min": 0.4,
+        "25%": 7.3,
+        "50%": 13.4,
+        "75%": 18.8,
+        "max": 39.7
+      },
+      "dew_point_c": {
+        "count": 768.0,
+        "mean": 2.26,
+        "std": 3.65,
+        "min": -4.85,
+        "25%": -0.71,
+        "50%": 1.96,
+        "75%": 5.12,
+        "max": 10.89
+      },
+      "wind_chill_c": {
+        "count": 768.0,
+        "mean": 3.41,
+        "std": 6.31,
+        "min": -7.09,
+        "25%": -1.59,
+        "50%": 2.76,
+        "75%": 6.84,
+        "max": 25.7
+      }
+    },
+    "categorical_counts": {
+      "city": {
+        "Aktau": 96,
+        "Aktobe": 96,
+        "Almaty": 96,
+        "Astana": 96,
+        "Atyrau": 96,
+        "Karaganda": 96,
+        "Pavlodar": 96,
+        "Shymkent": 96
+      },
+      "weather_category": {
+        "Cloudy": 488,
+        "Drizzle": 110,
+        "Clear": 91,
+        "Fog": 30,
+        "Rain": 25,
+        "Showers": 15,
+        "Snow": 9
+      },
+      "part_of_day": {
+        "Morning": 224,
+        "Night": 192,
+        "Afternoon": 192,
+        "Evening": 160
+      },
+      "comfort_level": {
+        "Cool": 379,
+        "Cold": 251,
+        "Mild": 127,
+        "Warm": 11
+      }
+    },
+    "correlations": {
+      "temperature_c": {
+        "temperature_c": 1.0,
+        "humidity_pct": -0.595,
+        "wind_speed_kmh": -0.1,
+        "dew_point_c": 0.606,
+        "wind_chill_c": 0.974
+      },
+      "humidity_pct": {
+        "temperature_c": -0.595,
+        "humidity_pct": 1.0,
+        "wind_speed_kmh": -0.024,
+        "dew_point_c": 0.257,
+        "wind_chill_c": -0.56
+      },
+      "wind_speed_kmh": {
+        "temperature_c": -0.1,
+        "humidity_pct": -0.024,
+        "wind_speed_kmh": 1.0,
+        "dew_point_c": -0.152,
+        "wind_chill_c": -0.293
+      },
+      "dew_point_c": {
+        "temperature_c": 0.606,
+        "humidity_pct": 0.257,
+        "wind_speed_kmh": -0.152,
+        "dew_point_c": 1.0,
+        "wind_chill_c": 0.619
+      },
+      "wind_chill_c": {
+        "temperature_c": 0.974,
+        "humidity_pct": -0.56,
+        "wind_speed_kmh": -0.293,
+        "dew_point_c": 0.619,
+        "wind_chill_c": 1.0
+      }
+    },
+    "grouped_mean_by_city": {
+      "Aktau": {
+        "temperature_c": 8.88,
+        "humidity_pct": 77.43,
+        "wind_speed_kmh": 19.78,
+        "dew_point_c": 4.98,
+        "wind_chill_c": 6.83
+      },
+      "Aktobe": {
+        "temperature_c": 2.57,
+        "humidity_pct": 84.62,
+        "wind_speed_kmh": 10.18,
+        "dew_point_c": 0.21,
+        "wind_chill_c": 0.08
+      },
+      "Almaty": {
+        "temperature_c": 8.82,
+        "humidity_pct": 65.65,
+        "wind_speed_kmh": 3.89,
+        "dew_point_c": 2.39,
+        "wind_chill_c": 8.67
+      },
+      "Astana": {
+        "temperature_c": 3.03,
+        "humidity_pct": 89.72,
+        "wind_speed_kmh": 17.3,
+        "dew_point_c": 1.4,
+        "wind_chill_c": -0.92
+      },
+      "Atyrau": {
+        "temperature_c": 4.25,
+        "humidity_pct": 85.91,
+        "wind_speed_kmh": 18.09,
+        "dew_point_c": 2.04,
+        "wind_chill_c": 0.73
+      },
+      "Karaganda": {
+        "temperature_c": 3.67,
+        "humidity_pct": 85.16,
+        "wind_speed_kmh": 17.34,
+        "dew_point_c": 1.24,
+        "wind_chill_c": -0.06
+      },
+      "Pavlodar": {
+        "temperature_c": 2.57,
+        "humidity_pct": 88.29,
+        "wind_speed_kmh": 15.49,
+        "dew_point_c": 0.7,
+        "wind_chill_c": -1.2
+      },
+      "Shymkent": {
+        "temperature_c": 13.57,
+        "humidity_pct": 62.42,
+        "wind_speed_kmh": 11.72,
+        "dew_point_c": 5.15,
+        "wind_chill_c": 13.13
+      }
+    },
+    "grouped_mean_by_category": {
+      "Clear": {
+        "temperature_c": 6.93,
+        "humidity_pct": 77.63,
+        "wind_speed_kmh": 8.12,
+        "dew_point_c": 2.94,
+        "wind_chill_c": 5.71
+      },
+      "Cloudy": {
+        "temperature_c": 6.03,
+        "humidity_pct": 75.86,
+        "wind_speed_kmh": 15.27,
+        "dew_point_c": 1.54,
+        "wind_chill_c": 3.39
+      },
+      "Drizzle": {
+        "temperature_c": 5.51,
+        "humidity_pct": 93.82,
+        "wind_speed_kmh": 15.23,
+        "dew_point_c": 4.55,
+        "wind_chill_c": 2.57
+      },
+      "Fog": {
+        "temperature_c": 6.02,
+        "humidity_pct": 87.3,
+        "wind_speed_kmh": 6.47,
+        "dew_point_c": 3.93,
+        "wind_chill_c": 4.92
+      },
+      "Rain": {
+        "temperature_c": 3.64,
+        "humidity_pct": 87.36,
+        "wind_speed_kmh": 18.78,
+        "dew_point_c": 1.69,
+        "wind_chill_c": -0.12
+      },
+      "Showers": {
+        "temperature_c": 6.15,
+        "humidity_pct": 90.07,
+        "wind_speed_kmh": 15.48,
+        "dew_point_c": 4.62,
+        "wind_chill_c": 3.71
+      },
+      "Snow": {
+        "temperature_c": 0.39,
+        "humidity_pct": 89.44,
+        "wind_speed_kmh": 18.03,
+        "dew_point_c": -1.17,
+        "wind_chill_c": -4.28
+      }
+    },
+    "figures": [
+      "fig01_temperature_timeseries.png",
+      "fig02_humidity_boxplot_by_city.png",
+      "fig03_weather_category_counts.png",
+      "fig04_temperature_vs_humidity.png",
+      "fig05_correlation_heatmap.png",
+      "fig06_city_part_of_day_heatmap.png"
+    ],
+    "findings": [
+      "RQ1 - The warmest city over the period is Shymkent (13.6 °C mean) and the coldest is Pavlodar (2.6 °C); the spread of city means is 11.0 °C.",
+      "RQ1 - The most humid city is Astana (90 % mean) and the windiest is Aktau (mean 19.8 km/h, peak 40 km/h).",
+      "RQ2 - Temperature and humidity show a moderate negative correlation (Pearson r = -0.60).",
+      "RQ3 - The most frequent weather category is 'Cloudy' (64 % of hours), followed by 'Drizzle'.",
+      "RQ3 - Over the whole sample the warmest part of the day is Afternoon (7.5 °C) and the coldest is Night (5.0 °C)."
+    ]
+  },
+  "verification": {
+    "counts": {
+      "Records collected from the API": 768,
+      "Deliberate invalid test records added by producer": 5,
+      "Messages published to Kafka": 773,
+      "Messages consumed from Kafka": 773,
+      "Valid records (Pandera)": 768,
+      "Invalid records (Pandera)": 5,
+      "Records after cleaning": 768,
+      "Records stored in SQLite3": 768
+    },
+    "checks": {
+      "API records >= 200": true,
+      "Published messages >= 200": true,
+      "Consumed messages >= 200": true,
+      "published == API records + test records": true,
+      "consumed == published": true,
+      "valid + invalid == consumed": true,
+      "all deliberate test records detected by Pandera": true,
+      "at least 3 invalid test records demonstrated": true,
+      "cleaned == valid - test - duplicates": true,
+      "stored in SQLite == cleaned": true,
+      "idempotent loading (2nd run adds 0 rows, same checksum)": true,
+      "SQLite integrity_check == ok": true,
+      "no duplicate record_id in SQLite": true
+    },
+    "notes": [
+      "API records (768) + test records (5) = published messages (773).",
+      "Consumed (773) equals published (773): no message was lost or duplicated (skipped messages of older runs: 0).",
+      "Invalid records (5) = test records detected (5) + real invalid API records (0); they are quarantined, not loaded.",
+      "Cleaning removed 0 leftover test records and 0 duplicates; 0 wind values were imputed (rows kept).",
+      "Stored rows (768) equal cleaned rows (768); a second load inserted 0 rows."
+    ],
+    "all_checks_passed": true
+  }
+}
